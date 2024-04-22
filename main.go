@@ -25,11 +25,10 @@ func main() {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "No allowances provided"})
 		}
 
-		firstAllowance := taxInput.Allowances[0]                            // Use the first allowance
-		netIncome := taxInput.TotalIncome - (60000 + firstAllowance.Amount) // Calculate net income after base and first allowance
+		firstAllowance := taxInput.Allowances[0] // Use the first allowance
 
 		// Calculate tax based on deductions
-		result := util.DeductionTaxLevel(netIncome)
+		result := util.TaxCalculation(taxInput, firstAllowance)
 
 		// Respond with the calculated tax data
 		return c.JSON(http.StatusOK, map[string]float64{"tax": result})

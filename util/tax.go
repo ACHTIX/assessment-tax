@@ -1,5 +1,8 @@
 package util
 
+import "github.com/ACHTIX/assessment-tax/model"
+
+// ระบุเปอร์เซ้นที่ต้องนำมาคำนวน
 func taxRateLevel(netIncome float64) float64 {
 	if netIncome < 0 {
 		return -1 // Error case for negative netIncome
@@ -17,6 +20,7 @@ func taxRateLevel(netIncome float64) float64 {
 	return 0
 }
 
+// คำนวนภาษีก่อนหักwht
 func DeductionTaxLevel(netIncome float64) float64 {
 	taxRateStr := taxRateLevel(netIncome)
 
@@ -42,4 +46,39 @@ func DeductionTaxLevel(netIncome float64) float64 {
 		return total
 	}
 	return 0
+}
+
+// คำนวนภาษีที่ต้องจ่าย (หักwhtแล้ว)
+func TaxCalculation(input model.TaxInput, allowance model.Allowance) float64 {
+	netIncome := IncomeCalculation(input, allowance) //จาก IncomeCalculation(เงินที่หักค่าลดหย่อนแล้ว)
+	deduction := DeductionTaxLevel(netIncome)        //จาก DeductionTaxLevel(ภาษีที่ต้องจ่าย)
+
+	subWHT := deduction - input.Wht
+
+	return subWHT
+}
+
+// รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
+func IncomeCalculation(input model.TaxInput, allowance model.Allowance) float64 {
+	allowanceTotal := 60000 + (allowance.Amount)    //ยอดรวมลดหย่อนภาษี
+	netIncome := input.TotalIncome - allowanceTotal //เงินทั้งหมดหักค่าลดหย่อนแล้ว
+	return netIncome
+}
+
+// ตรวจสอบขั้นของภาษี
+func checkTaxLevel(netIncome float64) string {
+	switch {
+	case netIncome < 0:
+		return "Error: negative income"
+	case netIncome <= 150000:
+		return "0 - 150,000"
+	case netIncome <= 500000:
+		return "150,001 - 500,000"
+	case netIncome <= 1000000:
+		return "500,001 - 1,000,000"
+	case netIncome <= 2000000:
+		return "1,000,001 - 2,000,000"
+	default:
+		return "2,000,001 and up"
+	}
 }

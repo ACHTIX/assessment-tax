@@ -2,6 +2,7 @@ package util
 
 import "github.com/ACHTIX/assessment-tax/model"
 
+// ระบุเปอร์เซ้นที่ต้องนำมาคำนวน
 func taxRateLevel(netIncome float64) float64 {
 	if netIncome < 0 {
 		return -1 // Error case for negative netIncome
@@ -19,6 +20,7 @@ func taxRateLevel(netIncome float64) float64 {
 	return 0
 }
 
+// คำนวนภาษีก่อนหักwht
 func DeductionTaxLevel(netIncome float64) float64 {
 	taxRateStr := taxRateLevel(netIncome)
 
@@ -46,7 +48,7 @@ func DeductionTaxLevel(netIncome float64) float64 {
 	return 0
 }
 
-// คำนวนภาษีที่ต้องจ่าย
+// คำนวนภาษีที่ต้องจ่าย (หักwhtแล้ว)
 func TaxCalculation(input model.TaxInput, allowance model.Allowance) float64 {
 	netIncome := IncomeCalculation(input, allowance) //จาก IncomeCalculation(เงินที่หักค่าลดหย่อนแล้ว)
 	deduction := DeductionTaxLevel(netIncome)        //จาก DeductionTaxLevel(ภาษีที่ต้องจ่าย)
@@ -63,6 +65,7 @@ func IncomeCalculation(input model.TaxInput, allowance model.Allowance) float64 
 	return netIncome
 }
 
+// ตรวจสอบขั้นของภาษี
 func checkTaxLevel(netIncome float64) string {
 	switch {
 	case netIncome < 0:

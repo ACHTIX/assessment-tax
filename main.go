@@ -34,6 +34,24 @@ func main() {
 		return c.JSON(http.StatusOK, map[string]float64{"tax": result})
 	})
 
+	//e.POST("/admin/deductions/personal", func(c echo.Context) error {
+	//
+	//	// Respond with the calculated tax data
+	//	return c.JSON(http.StatusOK, map[string]float64{"personalDeduction":  })
+	//})
+
+	//e.POST("tax/calculations/upload-csv", func(c echo.Context) error {
+	//
+	//	// Respond with the calculated tax data
+	//	return c.JSON(http.StatusOK, map[string]float64{"personalDeduction":  })
+	//})
+
+	//e.POST("/admin/deductions/k-receipt", func(c echo.Context) error {
+	//
+	//	// Respond with the calculated tax data
+	//	return c.JSON(http.StatusOK, map[string]float64{"personalDeduction":  })
+	//})
+
 	// Initialize the database and connect
 	if err := database.ConnectDB(); err != nil {
 		log.Fatalf("Failed to connect to database: %s", err)

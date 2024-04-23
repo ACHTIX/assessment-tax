@@ -2,6 +2,23 @@ package util
 
 import "github.com/ACHTIX/assessment-tax/model"
 
+// รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
+func IncomeCalculation(input model.TaxInput, allowance model.Allowance) float64 {
+	allowanceTotal := 60000 + checkAllowanceType(allowance.AllowanceType, allowance.Amount) //ยอดรวมลดหย่อนภาษี
+	netIncome := input.TotalIncome - allowanceTotal                                         //เงินทั้งหมดหักค่าลดหย่อนแล้ว
+	return netIncome
+}
+
+// คำนวนภาษีที่ต้องจ่าย (หักwhtแล้ว)
+func TaxCalculation(input model.TaxInput, allowance model.Allowance) float64 {
+	netIncome := IncomeCalculation(input, allowance) //จาก IncomeCalculation(เงินที่หักค่าลดหย่อนแล้ว)
+	deduction := DeductionTaxLevel(netIncome)        //จาก DeductionTaxLevel(ภาษีที่ต้องจ่าย)
+
+	subWHT := deduction - input.Wht
+
+	return subWHT
+}
+
 // ระบุเปอร์เซ้นที่ต้องนำมาคำนวน
 func taxRateLevel(netIncome float64) float64 {
 	if netIncome < 0 {
@@ -46,23 +63,6 @@ func DeductionTaxLevel(netIncome float64) float64 {
 		return total
 	}
 	return 0
-}
-
-// คำนวนภาษีที่ต้องจ่าย (หักwhtแล้ว)
-func TaxCalculation(input model.TaxInput, allowance model.Allowance) float64 {
-	netIncome := IncomeCalculation(input, allowance) //จาก IncomeCalculation(เงินที่หักค่าลดหย่อนแล้ว)
-	deduction := DeductionTaxLevel(netIncome)        //จาก DeductionTaxLevel(ภาษีที่ต้องจ่าย)
-
-	subWHT := deduction - input.Wht
-
-	return subWHT
-}
-
-// รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
-func IncomeCalculation(input model.TaxInput, allowance model.Allowance) float64 {
-	allowanceTotal := 60000 + (allowance.Amount)    //ยอดรวมลดหย่อนภาษี
-	netIncome := input.TotalIncome - allowanceTotal //เงินทั้งหมดหักค่าลดหย่อนแล้ว
-	return netIncome
 }
 
 // ตรวจสอบขั้นของภาษี

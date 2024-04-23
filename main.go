@@ -21,15 +21,73 @@ func handleTaxCalculation(c echo.Context) error {
 	if len(taxInput.Allowances) == 0 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No allowances provided"})
 	}
+	if len(taxInput.Allowances) == 0 {
+		c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
+	}
 
-	// Use the first allowance for the calculation
-	firstAllowance := taxInput.Allowances[0]
+	if len(taxInput.Allowances) == 0 {
+		c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
+	}
 
-	// Calculate the tax based on the provided input and the first allowance
-	taxResult := util.TaxCalculation(taxInput, firstAllowance)
+	taxResult, taxLevel := util.TaxCalculation(taxInput)
 
-	// Format the result into JSON and return it
-	return c.JSON(http.StatusOK, map[string]float64{"tax": taxResult})
+	taxData := model.TaxData{
+		Tax: taxResult,
+		TaxLevel: []model.TaxLevel{
+			{Level: "0-150,000", Tax: 0},
+			{Level: "150,001-500,000", Tax: 0},
+			{Level: "500,001-1,000,000", Tax: 0},
+			{Level: "1,000,001-2,000,000", Tax: 0},
+			{Level: "2,000,001 ขึ้นไป", Tax: 0},
+		},
+	}
+
+	for i := range taxData.TaxLevel {
+		if taxData.TaxLevel[i].Level == taxLevel.Level {
+			taxData.TaxLevel[i].Tax = taxLevel.Tax
+			break
+		} else if taxData.TaxLevel[i].Level == "0-150,000" {
+			taxData.TaxLevel[i].Tax = 0
+		} else if taxData.TaxLevel[i].Level == "150,001-500,000" {
+			taxData.TaxLevel[i].Tax = 35000.0
+		} else if taxData.TaxLevel[i].Level == "500,001-1,000,000" {
+			taxData.TaxLevel[i].Tax = 110000.0
+		} else if taxData.TaxLevel[i].Level == "1,000,001-2,000,000" {
+			taxData.TaxLevel[i].Tax = 310000.0
+		} else if taxData.TaxLevel[i].Level == "2,000,001 ขึ้นไป" {
+			taxData.TaxLevel[i].Tax = taxResult
+		}
+	}
+
+	// Return the tax JSON
+	return c.JSON(http.StatusOK, taxData)
+}
+
+func SeparateTaxLevel(netIncome float64, threshold float64) float64 {
+	taxRateStr := util.TaxRateLevel(netIncome)
+
+	if netIncome < 0 {
+		return -1 // Error case for negative netIncome
+	} else if netIncome <= 150000 {
+		return 0 // No tax for netIncome ≤ 150,000
+	} else if netIncome <= 500000 {
+		sub := netIncome - 150000
+		total := sub * taxRateStr
+		return total
+	} else if netIncome <= 1000000 {
+		sub := netIncome - 500000
+		total := sub * taxRateStr
+		return total
+	} else if netIncome <= 2000000 {
+		sub := netIncome - 1000000
+		total := sub * taxRateStr
+		return total
+	} else if netIncome > 2000000 {
+		sub := netIncome - 2000000
+		total := sub * taxRateStr
+		return total
+	}
+	return 0
 }
 
 func main() {

@@ -33,12 +33,8 @@ func kReceiptAllowance() {
 }
 
 // ค่าลดหย่อนภาษีจาก k-receipt แอดมินกำหมดได้ สูงสุดไม่เกิน 100,000
-func kReceiptAllowanceAdmin() {
-
-}
-
 // ค่าลดหย่อนส่วนตัวต้องมีค่ามากกว่า 10,000 บาท
 // แอดมินสามารถกำหนดค่าลดหย่อนส่วนตัวได้โดยไม่เกิน 100,000
-func personAllowanceAdmin() {
+func allowanceAdmin() {
 
 }

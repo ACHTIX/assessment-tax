@@ -4,9 +4,10 @@ import (
 	"github.com/ACHTIX/assessment-tax/database"
 	"github.com/ACHTIX/assessment-tax/model"
 	"github.com/ACHTIX/assessment-tax/util"
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
-	"log"
 	"net/http"
+	"os"
 )
 
 func handleTaxCalculation(c echo.Context) error {
@@ -18,15 +19,8 @@ func handleTaxCalculation(c echo.Context) error {
 	}
 
 	// Ensure there is at least one allowance to process
-	if len(taxInput.Allowances) == 0 {
+	if len(taxInput.Allowances) <= 0 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No allowances provided"})
-	}
-	if len(taxInput.Allowances) == 0 {
-		c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
-	}
-
-	if len(taxInput.Allowances) == 0 {
-		c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
 	}
 
 	taxResult, taxLevel := util.TaxCalculation(taxInput)
@@ -63,43 +57,81 @@ func handleTaxCalculation(c echo.Context) error {
 	return c.JSON(http.StatusOK, taxData)
 }
 
-func SeparateTaxLevel(netIncome float64, threshold float64) float64 {
-	taxRateStr := util.TaxRateLevel(netIncome)
+func handleAdminDeductionPersonal(c echo.Context) error {
+	var input model.Allowance
 
-	if netIncome < 0 {
-		return -1 // Error case for negative netIncome
-	} else if netIncome <= 150000 {
-		return 0 // No tax for netIncome ≤ 150,000
-	} else if netIncome <= 500000 {
-		sub := netIncome - 150000
-		total := sub * taxRateStr
-		return total
-	} else if netIncome <= 1000000 {
-		sub := netIncome - 500000
-		total := sub * taxRateStr
-		return total
-	} else if netIncome <= 2000000 {
-		sub := netIncome - 1000000
-		total := sub * taxRateStr
-		return total
-	} else if netIncome > 2000000 {
-		sub := netIncome - 2000000
-		total := sub * taxRateStr
-		return total
+	// Fetch from the database
+	allowance, err := database.GetAllowance()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Error fetching users")
 	}
-	return 0
+
+	// Check if the allowance is nil
+	if allowance == nil {
+		return c.JSON(http.StatusInternalServerError, "No allowance found in the database")
+	}
+
+	// Bind the incoming JSON to the struct
+	if err := c.Bind(&input); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
+	}
+
+	// Calculate the personal deduction based on the fetched allowance
+	result := util.AllowancePersonalAdmin(input.Amount)
+
+	err = database.SetPersonalAllowanceDB(result)
+	if err != nil {
+		panic(err)
+	}
+
+	// Return the tax JSON
+	return c.JSON(http.StatusOK, map[string]float64{"personalDeduction": result})
+}
+
+func handleUpload(echo.Context) error {
+
+	return nil
+}
+
+func handleAdminDeductionKReceipt(echo.Context) error {
+
+	return nil
 }
 
 func main() {
 	e := echo.New()
 
-	e.POST("/tax/calculations", handleTaxCalculation)
-
-	// Initialize the database and connect
-	if err := database.ConnectDB(); err != nil {
-		log.Fatalf("Failed to connect to database: %s", err)
+	// Use environment variables for database connection
+	DATABASE_URL := os.Getenv("DATABASE_URL")
+	if DATABASE_URL == "" {
+		DATABASE_URL = "host=localhost port=5432 user=postgres password=postgres dbname=ktaxes sslmode=disable" // Default port if not specified
+	}
+	PORT := os.Getenv("PORT")
+	if PORT == "" {
+		PORT = "8080" // Default port if not specified
+	}
+	ADMIN_USERNAME := os.Getenv("ADMIN_USERNAME")
+	if ADMIN_USERNAME == "" {
+		ADMIN_USERNAME = "adminTax" // Default port if not specified
+	}
+	ADMIN_PASSWORD := os.Getenv("ADMIN_PASSWORD")
+	if ADMIN_PASSWORD == "" {
+		ADMIN_PASSWORD = "admin!" // Default port if not specified
 	}
 
-	// Start the Echo web server on port 8080
+	database.InitDB(DATABASE_URL)
+
+	e.POST("/tax/calculations", handleTaxCalculation)
+
+	e.POST("/admin/deductions/personal", handleAdminDeductionPersonal)
+
+	e.POST("tax/calculations/upload - csv", handleUpload)
+
+	e.POST("/admin/deductions/k-receipt", handleAdminDeductionKReceipt)
+
+	e.Validator = &util.CustomValidator{Validator: validator.New()}
+
+	//// Start the Echo web server on port 8080
 	e.Logger.Fatal(e.Start(":8080"))
 }

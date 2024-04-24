@@ -1,6 +1,8 @@
 package util
 
-import "github.com/ACHTIX/assessment-tax/model"
+import (
+	"github.com/ACHTIX/assessment-tax/model"
+)
 
 // รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
 func IncomeCalculation(input model.TaxInput) float64 {

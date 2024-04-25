@@ -10,3 +10,7 @@ type Allowance struct {
 	AllowanceType string  `json:"allowanceType" validate:"oneof=donation k-receipt"`
 	Amount        float64 `json:"amount" validate:"gte=0"`
 }
+
+type AdminRequestStruct struct {
+	Amount float64 `json:"amount" validate:"gte=0"`
+}

@@ -1,13 +1,17 @@
 package main
 
 import (
+	"encoding/csv"
 	"github.com/ACHTIX/assessment-tax/database"
 	"github.com/ACHTIX/assessment-tax/model"
 	"github.com/ACHTIX/assessment-tax/util"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
+	"io"
+	"math"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func handleTaxCalculation(c echo.Context) error {
@@ -25,15 +29,20 @@ func handleTaxCalculation(c echo.Context) error {
 
 	taxResult, taxLevel := util.TaxCalculation(taxInput)
 
-	taxData := model.TaxData{
-		Tax: taxResult,
-		TaxLevel: []model.TaxLevel{
-			{Level: "0-150,000", Tax: 0},
-			{Level: "150,001-500,000", Tax: 0},
-			{Level: "500,001-1,000,000", Tax: 0},
-			{Level: "1,000,001-2,000,000", Tax: 0},
-			{Level: "2,000,001 ขึ้นไป", Tax: 0},
-		},
+	taxData := model.TaxData{}
+
+	if taxResult >= 0 {
+		taxData = model.TaxData{Tax: taxResult}
+	} else {
+		taxData = model.TaxData{TaxRefund: math.Abs(taxResult)}
+	}
+
+	taxData.TaxLevel = []model.TaxLevel{
+		{Level: "0-150,000", Tax: 0},
+		{Level: "150,001-500,000", Tax: 0},
+		{Level: "500,001-1,000,000", Tax: 0},
+		{Level: "1,000,001-2,000,000", Tax: 0},
+		{Level: "2,000,001 ขึ้นไป", Tax: 0},
 	}
 
 	for i := range taxData.TaxLevel {
@@ -89,9 +98,76 @@ func handleAdminDeductionPersonal(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]float64{"personalDeduction": result})
 }
 
-func handleUpload(echo.Context) error {
+func handleUpload(c echo.Context) error {
+	file, err := c.FormFile("taxFile")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to get the file")
+	}
 
-	return nil
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	reader := csv.NewReader(src)
+	var taxes []model.TaxResponseCSVDataStruct
+
+	if _, err = reader.Read(); err != nil {
+		return err
+	}
+	var loopNumber = 0
+
+	for {
+		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to read the csv file")
+		}
+
+		totalIncome, err := strconv.ParseFloat(record[0], 64)
+		wht, err := strconv.ParseFloat(record[1], 64)
+		donation, err := strconv.ParseFloat(record[2], 64)
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid totalIncome value")
+		}
+
+		data := model.TaxInput{
+			TotalIncome: totalIncome,
+			Wht:         wht,
+			Allowances: []model.Allowance{
+				{
+					AllowanceType: "donation",
+					Amount:        donation,
+				},
+			},
+		}
+		tax, _ := util.TaxCalculation(data)
+		if tax >= 0 {
+			taxes = append(
+				taxes,
+				model.TaxResponseCSVDataStruct{
+					TotalIncome: totalIncome,
+					Tax:         tax,
+				},
+			)
+		} else {
+			taxes = append(
+				taxes,
+				model.TaxResponseCSVDataStruct{
+					TotalIncome: totalIncome,
+					TaxRefund:   math.Abs(tax),
+				},
+			)
+		}
+
+		loopNumber += 1
+	}
+
+	return c.JSON(http.StatusOK, model.TaxResponseCSVStruct{Taxes: taxes})
 }
 
 func handleAdminDeductionKReceipt(c echo.Context) error {
@@ -154,7 +230,7 @@ func main() {
 
 	e.POST("/admin/deductions/personal", handleAdminDeductionPersonal)
 
-	e.POST("tax/calculations/upload - csv", handleUpload)
+	e.POST("/tax/calculations/upload-csv", handleUpload)
 
 	e.POST("/admin/deductions/k-receipt", handleAdminDeductionKReceipt)
 

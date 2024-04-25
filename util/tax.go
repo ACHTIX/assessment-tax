@@ -6,8 +6,10 @@ import (
 
 // รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
 func IncomeCalculation(input model.TaxInput) float64 {
-	allowanceTotal := 60000 + checkAllowanceType(input.Allowances[0].AllowanceType, input.Allowances[0].Amount) //ยอดรวมลดหย่อนภาษี
-	netIncome := input.TotalIncome - allowanceTotal                                                             //เงินทั้งหมดหักค่าลดหย่อนแล้ว
+	//allowancePersonal, _ := database.GetAllowance()
+
+	allowanceTotal := 60000 + checkAllowanceType(input.Allowances) //ยอดรวมลดหย่อนภาษี
+	netIncome := input.TotalIncome - allowanceTotal                //เงินทั้งหมดหักค่าลดหย่อนแล้ว
 	return netIncome
 }
 

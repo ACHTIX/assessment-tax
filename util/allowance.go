@@ -1,15 +1,21 @@
 package util
 
+import (
+	"github.com/ACHTIX/assessment-tax/model"
+)
+
 // แยกประเภทค่าลดหย่อน
-func checkAllowanceType(allowanceType string, allowanceAmount float64) float64 {
-	if allowanceType == "donation" {
-		amount := donationAllowance(allowanceAmount)
-		return amount
-	} else if allowanceType == "k-receipt" {
-		amount := kReceiptAllowance(allowanceAmount)
-		return amount
+func checkAllowanceType(input []model.Allowance) float64 {
+	amount := 0.0
+	for i := range input {
+		allowance := input[i].Amount
+		if input[i].AllowanceType == "donation" {
+			amount += donationAllowance(allowance)
+		} else if input[i].AllowanceType == "k-receipt" {
+			amount += kReceiptAllowance(allowance)
+		}
 	}
-	return 0
+	return amount
 }
 
 // ค่าลดหย่อนภาษีจากการบริจาค ไม่เกิน 100,000

@@ -94,9 +94,37 @@ func handleUpload(echo.Context) error {
 	return nil
 }
 
-func handleAdminDeductionKReceipt(echo.Context) error {
+func handleAdminDeductionKReceipt(c echo.Context) error {
 
-	return nil
+	var input model.Allowance
+
+	// Fetch from the database
+	allowance, err := database.GetAllowance()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Error fetching users")
+	}
+
+	// Check if the allowance is nil
+	if allowance == nil {
+		return c.JSON(http.StatusInternalServerError, "No allowance found in the database")
+	}
+
+	// Bind the incoming JSON to the struct
+	if err := c.Bind(&input); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
+	}
+
+	// Calculate the personal deduction based on the fetched allowance
+	result := util.AllowanceKReceiptAdmin(input.Amount)
+
+	err = database.SetKReceiptAllowanceDB(result)
+	if err != nil {
+		panic(err)
+	}
+
+	// Return the tax JSON
+	return c.JSON(http.StatusOK, map[string]float64{"kReceipt": result})
 }
 
 func main() {

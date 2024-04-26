@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/ACHTIX/assessment-tax/model"
+	"log"
 )
 
 func GetAllowance() (*model.Allowance, error) {
@@ -12,11 +13,7 @@ func GetAllowance() (*model.Allowance, error) {
 		return nil, err
 	}
 
-	return &amount, nil
-}
+	log.Println("Allowance:", amount.Amount)
 
-func GetPersonalAllowance() (float64, error) {
-	var personalDeduct model.GetTaxDeductStruct
-	err := DB.QueryRow(`SELECT amount_deduct,id,is_active,create_at FROM public."master_deduct" WHERE is_active = TRUE AND type_deduct = 'personal'`).Scan(&personalDeduct.PersonalDeduct, &personalDeduct.Id, &personalDeduct.Is_active, &personalDeduct.Create_at)
-	return personalDeduct.PersonalDeduct, err
+	return &amount, nil
 }

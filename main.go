@@ -8,6 +8,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"os"
@@ -28,6 +29,8 @@ func handleTaxCalculation(c echo.Context) error {
 	}
 
 	taxResult, taxLevel := util.TaxCalculation(taxInput)
+
+	log.Println("taxResult", taxResult, "taxLevel", taxLevel)
 
 	taxData := model.TaxData{}
 
@@ -62,6 +65,8 @@ func handleTaxCalculation(c echo.Context) error {
 		}
 	}
 
+	log.Println("taxData", taxData)
+
 	// Return the tax JSON
 	return c.JSON(http.StatusOK, taxData)
 }
@@ -93,6 +98,8 @@ func handleAdminDeductionPersonal(c echo.Context) error {
 	if err != nil {
 		panic(err)
 	}
+
+	log.Println("result", result)
 
 	// Return the tax JSON
 	return c.JSON(http.StatusOK, map[string]float64{"personalDeduction": result})
@@ -131,6 +138,8 @@ func handleUpload(c echo.Context) error {
 		wht, err := strconv.ParseFloat(record[1], 64)
 		donation, err := strconv.ParseFloat(record[2], 64)
 
+		log.Println("totalIncome", totalIncome, "wht", wht, "donation", donation)
+
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid totalIncome value")
 		}
@@ -145,7 +154,13 @@ func handleUpload(c echo.Context) error {
 				},
 			},
 		}
+
+		log.Println("data", data)
+
 		tax, _ := util.TaxCalculation(data)
+
+		log.Println("tax", tax)
+
 		if tax >= 0 {
 			taxes = append(
 				taxes,
@@ -166,6 +181,8 @@ func handleUpload(c echo.Context) error {
 
 		loopNumber += 1
 	}
+
+	log.Println("taxes", taxes)
 
 	return c.JSON(http.StatusOK, model.TaxResponseCSVStruct{Taxes: taxes})
 }
@@ -194,6 +211,8 @@ func handleAdminDeductionKReceipt(c echo.Context) error {
 	// Calculate the personal deduction based on the fetched allowance
 	result := util.AllowanceKReceiptAdmin(input.Amount)
 
+	log.Println("result", result)
+
 	err = database.SetKReceiptAllowanceDB(result)
 	if err != nil {
 		panic(err)
@@ -208,20 +227,25 @@ func main() {
 
 	// Use environment variables for database connection
 	DATABASE_URL := os.Getenv("DATABASE_URL")
+
 	if DATABASE_URL == "" {
 		DATABASE_URL = "host=localhost port=5432 user=postgres password=postgres dbname=ktaxes sslmode=disable" // Default port if not specified
+		log.Println("DATABASE_URL", DATABASE_URL)
 	}
 	PORT := os.Getenv("PORT")
 	if PORT == "" {
 		PORT = "8080" // Default port if not specified
+		log.Printf("Defaulting to port %s", PORT)
 	}
 	ADMIN_USERNAME := os.Getenv("ADMIN_USERNAME")
 	if ADMIN_USERNAME == "" {
 		ADMIN_USERNAME = "adminTax" // Default port if not specified
+		log.Printf("Defaulting to admin user %s", ADMIN_USERNAME)
 	}
 	ADMIN_PASSWORD := os.Getenv("ADMIN_PASSWORD")
 	if ADMIN_PASSWORD == "" {
 		ADMIN_PASSWORD = "admin!" // Default port if not specified
+		log.Printf("Defaulting to admin password %s", ADMIN_PASSWORD)
 	}
 
 	database.InitDB(DATABASE_URL)

@@ -2,14 +2,16 @@ package util
 
 import (
 	"github.com/ACHTIX/assessment-tax/model"
+	"log"
 )
 
 // รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
 func IncomeCalculation(input model.TaxInput) float64 {
-	//allowancePersonal, _ := database.GetAllowance()
-
-	allowanceTotal := 60000 + checkAllowanceType(input.Allowances) //ยอดรวมลดหย่อนภาษี
+	allowanceTotal := 60000 + CheckAllowanceType(input.Allowances) //ยอดรวมลดหย่อนภาษี
 	netIncome := input.TotalIncome - allowanceTotal                //เงินทั้งหมดหักค่าลดหย่อนแล้ว
+
+	log.Println("netIncome", netIncome)
+
 	return netIncome
 }
 
@@ -18,6 +20,8 @@ func TaxCalculation(input model.TaxInput) (float64, model.TaxLevel) {
 	netIncome := IncomeCalculation(input)               //จาก IncomeCalculation(เงินที่หักค่าลดหย่อนแล้ว)
 	deduction, taxlevel := DeductionTaxLevel(netIncome) //จาก DeductionTaxLevel(ภาษีที่ต้องจ่าย)
 	subWHT := deduction - input.Wht
+
+	log.Println("subWHT", subWHT)
 
 	return subWHT, taxlevel
 }
@@ -34,9 +38,12 @@ func TaxRateLevel(netIncome float64) float64 {
 		return 0.15 // 15% tax for netIncome ≤ 1,000,000
 	} else if netIncome <= 2000000 {
 		return 0.20 // 20% tax for netIncome ≤ 2,000,000
-	} else if netIncome > 2000001 {
+	} else if netIncome >= 2000001 {
 		return 0.35 // 35% tax for netIncome > 2,000,000
 	}
+
+	log.Println("netIncome", netIncome)
+
 	return 0
 }
 
@@ -64,23 +71,5 @@ func DeductionTaxLevel(netIncome float64) (tax float64, level model.TaxLevel) {
 		sub := netIncome - 2000000
 		total := (sub * taxRateStr) + 310000
 		return total, model.TaxLevel{Level: "2,000,001 ขึ้นไป", Tax: total}
-	}
-}
-
-// ตรวจสอบขั้นของภาษี
-func checkTaxLevel(netIncome float64) string {
-	switch {
-	case netIncome < 0:
-		return "Error: negative income"
-	case netIncome <= 150000:
-		return "0 - 150,000"
-	case netIncome <= 500000:
-		return "150,001 - 500,000"
-	case netIncome <= 1000000:
-		return "500,001 - 1,000,000"
-	case netIncome <= 2000000:
-		return "1,000,001 - 2,000,000"
-	default:
-		return "2,000,001 and up"
 	}
 }

@@ -13,9 +13,10 @@ func TestAllowanceKReceiptAdmin(t *testing.T) {
 	}{
 		{"Zero", 0, 0},
 		{"Normal Case", 50000, 50000},
-		{"Just Above Cap", 100001, 100000},
+		{"Just Above Cap", 100000, 100000},
 		{"Much Above Cap", 200000, 100000},
 		{"At Cap", 100000, 100000},
+		{"Minus", -100000, 0},
 	}
 
 	for _, c := range cases {

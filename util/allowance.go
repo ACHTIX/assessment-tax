@@ -28,11 +28,10 @@ func DonationAllowance(amount float64) float64 {
 		return 100000
 	} else if amount <= 100000 && amount != 0 {
 		return amount
+	} else {
+		log.Println("DonationAllowance amount", amount)
+		return 0
 	}
-
-	log.Println("DonationAllowance amount", amount)
-
-	return 0
 }
 
 // ค่าลด k-receipt ต้องมีค่ามากกว่า 0 บาท
@@ -51,29 +50,25 @@ func KReceiptAllowance(amount float64) float64 {
 
 // ค่าลดหย่อนส่วนตัวต้องมีค่ามากกว่า 10,000 บาท
 // แอดมินสามารถกำหนดค่าลดหย่อนส่วนตัวได้โดยไม่เกิน 100,000
-
 func AllowancePersonalAdmin(amount float64) float64 {
 	if amount >= 100001 {
 		return 100000
-	} else if amount < 10000 {
+	} else if amount <= 10000 {
 		return 10000
 	} else {
-
 		log.Println("AllowancePersonalAdmin amount", amount)
-
 		return amount
 	}
 }
 
 // ค่าลดหย่อนภาษีจาก k-receipt แอดมินกำหมดได้ สูงสุดไม่เกิน 100,000
-
 func AllowanceKReceiptAdmin(amount float64) float64 {
 	if amount >= 100001 {
 		return 100000
+	} else if amount < 0 {
+		return 0
 	} else {
-
-		log.Println("AllowanceKReceiptAdmin amount", amount)
-
+		log.Println("AllowanceKReceiptAdmin is", amount)
 		return amount
 	}
 }

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"github.com/ACHTIX/assessment-tax/model"
 	"log"
 )
@@ -16,14 +17,16 @@ func IncomeCalculation(input model.TaxInput) float64 {
 }
 
 // คำนวนภาษีที่ต้องจ่าย (หักwhtแล้ว)
-func TaxCalculation(input model.TaxInput) (float64, model.TaxLevel) {
+func TaxCalculation(input model.TaxInput) (float64, model.TaxLevel, error) {
 	netIncome := IncomeCalculation(input)               //จาก IncomeCalculation(เงินที่หักค่าลดหย่อนแล้ว)
 	deduction, taxlevel := DeductionTaxLevel(netIncome) //จาก DeductionTaxLevel(ภาษีที่ต้องจ่าย)
 	subWHT := deduction - input.Wht
 
-	log.Println("subWHT", subWHT)
+	if netIncome < 0 {
+		return 0, model.TaxLevel{}, errors.New("\"Key: 'TaxInput.TotalIncome' Error:Field validation for 'TotalIncome' failed on the 'gte' tag\"")
+	}
 
-	return subWHT, taxlevel
+	return subWHT, taxlevel, nil
 }
 
 // ระบุเปอร์เซ้นที่ต้องนำมาคำนวน
@@ -51,9 +54,9 @@ func TaxRateLevel(netIncome float64) float64 {
 func DeductionTaxLevel(netIncome float64) (tax float64, level model.TaxLevel) {
 	taxRateStr := TaxRateLevel(netIncome)
 
-	if netIncome < 0 {
-		return -1, model.TaxLevel{} // Error case for negative netIncome
-	} else if netIncome <= 150000 {
+	if netIncome < 0 && netIncome != 0 {
+		return 0, model.TaxLevel{} // Error case for negative netIncome
+	} else if netIncome <= 150000 || netIncome == 0 {
 		return 0, model.TaxLevel{Level: "0-150,000", Tax: 0.0} // No tax for netIncome ≤ 150,000
 	} else if netIncome <= 500000 {
 		sub := netIncome - 150000

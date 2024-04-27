@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/csv"
 	"github.com/ACHTIX/assessment-tax/database"
+	_ "github.com/ACHTIX/assessment-tax/docs"
 	"github.com/ACHTIX/assessment-tax/model"
 	"github.com/ACHTIX/assessment-tax/util"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
+	echoswagger "github.com/swaggo/echo-swagger"
 	"io"
 	"log"
 	"math"
@@ -22,13 +24,17 @@ func handleTaxCalculation(c echo.Context) error {
 	if err := c.Bind(&taxInput); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
 	}
+	if err := c.Validate(taxInput); err != nil {
+		log.Println(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 
 	// Ensure there is at least one allowance to process
 	if len(taxInput.Allowances) <= 0 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No allowances provided"})
 	}
 
-	taxResult, taxLevel := util.TaxCalculation(taxInput)
+	taxResult, taxLevel, _ := util.TaxCalculation(taxInput)
 
 	log.Println("taxResult", taxResult, "taxLevel", taxLevel)
 
@@ -72,7 +78,7 @@ func handleTaxCalculation(c echo.Context) error {
 }
 
 func handleAdminDeductionPersonal(c echo.Context) error {
-	var input model.Allowance
+	var input model.AdminRequestStruct
 
 	// Fetch from the database
 	allowance, err := database.GetAllowance()
@@ -90,7 +96,10 @@ func handleAdminDeductionPersonal(c echo.Context) error {
 	if err := c.Bind(&input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
 	}
-
+	if err := c.Validate(input); err != nil {
+		log.Println(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
 	// Calculate the personal deduction based on the fetched allowance
 	result := util.AllowancePersonalAdmin(input.Amount)
 
@@ -157,7 +166,7 @@ func handleUpload(c echo.Context) error {
 
 		log.Println("data", data)
 
-		tax, _ := util.TaxCalculation(data)
+		tax, _, _ := util.TaxCalculation(data)
 
 		log.Println("tax", tax)
 
@@ -189,7 +198,7 @@ func handleUpload(c echo.Context) error {
 
 func handleAdminDeductionKReceipt(c echo.Context) error {
 
-	var input model.Allowance
+	var input model.AdminRequestStruct
 
 	// Fetch from the database
 	allowance, err := database.GetAllowance()
@@ -206,6 +215,10 @@ func handleAdminDeductionKReceipt(c echo.Context) error {
 	// Bind the incoming JSON to the struct
 	if err := c.Bind(&input); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
+	}
+	if err := c.Validate(input); err != nil {
+		log.Println(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	// Calculate the personal deduction based on the fetched allowance
@@ -257,6 +270,8 @@ func main() {
 	e.POST("/tax/calculations/upload-csv", handleUpload)
 
 	e.POST("/admin/deductions/k-receipt", handleAdminDeductionKReceipt)
+
+	e.GET("/swagger/*", echoswagger.WrapHandler)
 
 	e.Validator = &util.CustomValidator{Validator: validator.New()}
 

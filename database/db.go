@@ -19,3 +19,14 @@ func InitDB(dataSourceName string) {
 		log.Panic(err)
 	}
 }
+
+func CloseDB() {
+	if DB != nil {
+		err := DB.Close()
+		if err != nil {
+			log.Println("Failed to close database connection:", err)
+		} else {
+			log.Println("Database connection closed successfully.")
+		}
+	}
+}

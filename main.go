@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"encoding/csv"
+	"fmt"
 	"github.com/ACHTIX/assessment-tax/database"
 	_ "github.com/ACHTIX/assessment-tax/docs"
 	"github.com/ACHTIX/assessment-tax/model"
@@ -14,7 +16,10 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
+	"time"
 )
 
 func handleTaxCalculation(c echo.Context) error {
@@ -276,5 +281,28 @@ func main() {
 	e.Validator = &util.CustomValidator{Validator: validator.New()}
 
 	//// Start the Echo web server on port 8080
-	e.Logger.Fatal(e.Start(":8080"))
+	go func() {
+		if err := e.Start(":" + PORT); err != nil && err != http.ErrServerClosed {
+			e.Logger.Fatal("shutting down the server: ", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+	preShutdownTasks()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal("error shutting down the server: ", err)
+	}
+	fmt.Println("Server has been shut down.")
+}
+
+func preShutdownTasks() {
+	fmt.Println("Running pre-shutdown tasks...")
+	database.CloseDB()
+	time.Sleep(5 * time.Second)
+	fmt.Println("Pre-shutdown tasks complete.")
 }

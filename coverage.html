@@ -1,0 +1,733 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>database: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/ACHTIX/assessment-tax/database/db.go (0.0%)</option>
+				
+				<option value="file1">github.com/ACHTIX/assessment-tax/database/get.go (0.0%)</option>
+				
+				<option value="file2">github.com/ACHTIX/assessment-tax/database/set.go (0.0%)</option>
+				
+				<option value="file3">github.com/ACHTIX/assessment-tax/docs/docs.go (0.0%)</option>
+				
+				<option value="file4">github.com/ACHTIX/assessment-tax/main.go (0.0%)</option>
+				
+				<option value="file5">github.com/ACHTIX/assessment-tax/util/allowance.go (100.0%)</option>
+				
+				<option value="file6">github.com/ACHTIX/assessment-tax/util/tax.go (88.6%)</option>
+				
+				<option value="file7">github.com/ACHTIX/assessment-tax/util/validate.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package database
+
+import (
+        "database/sql"
+        _ "github.com/lib/pq"
+        "log"
+)
+
+var DB *sql.DB
+
+func InitDB(dataSourceName string) <span class="cov0" title="0">{
+        var err error
+        DB, err = sql.Open("postgres", dataSourceName)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Panic(err)
+        }</span>
+
+        <span class="cov0" title="0">if err = DB.Ping(); err != nil </span><span class="cov0" title="0">{
+                log.Panic(err)
+        }</span>
+}
+
+func CloseDB() <span class="cov0" title="0">{
+        if DB != nil </span><span class="cov0" title="0">{
+                err := DB.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Println("Failed to close database connection:", err)
+                }</span> else<span class="cov0" title="0"> {
+                        log.Println("Database connection closed successfully.")
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package database
+
+import (
+        "github.com/ACHTIX/assessment-tax/model"
+        "log"
+)
+
+func GetAllowance() (*model.Allowance, error) <span class="cov0" title="0">{
+        var amount model.Allowance
+        err := DB.QueryRow(`SELECT amount FROM tax."allowance"`).Scan(&amp;amount.Amount)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">log.Println("Allowance:", amount.Amount)
+
+        return &amp;amount, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package database
+
+import "log"
+
+func SetPersonalAllowanceDB(setNum float64) error <span class="cov0" title="0">{
+        // Prepare the SQL statement
+        stmt, err := DB.Prepare(`UPDATE tax."allowance" SET Amount = $1 WHERE Type = 'Personal'`)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer stmt.Close()
+
+        // Execute the SQL statement with the provided value
+        _, err = stmt.Exec(setNum)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">log.Println("can't set personal in Database", err)
+
+        return nil</span>
+}
+
+func SetKReceiptAllowanceDB(setNum float64) error <span class="cov0" title="0">{
+        // Prepare the SQL statement
+        stmt, err := DB.Prepare(`UPDATE tax."allowance" SET Amount = $1 WHERE Type = 'k-receipt'`)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer stmt.Close()
+
+        // Execute the SQL statement with the provided value
+        _, err = stmt.Exec(setNum)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">log.Println("can't set k-receipt in Database", err)
+
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Package docs Code generated by swaggo/swag. DO NOT EDIT
+package docs
+
+import "github.com/swaggo/swag"
+
+const docTemplate = `{
+    "schemes": {{ marshal .Schemes }},
+    "swagger": "2.0",
+    "info": {
+        "description": "{{escape .Description}}",
+        "title": "{{.Title}}",
+        "contact": {},
+        "version": "{{.Version}}"
+    },
+    "host": "{{.Host}}",
+    "basePath": "{{.BasePath}}",
+    "paths": {}
+}`
+
+// SwaggerInfo holds exported Swagger Info so clients can modify it
+var SwaggerInfo = &amp;swag.Spec{
+        Version:          "",
+        Host:             "",
+        BasePath:         "",
+        Schemes:          []string{},
+        Title:            "",
+        Description:      "",
+        InfoInstanceName: "swagger",
+        SwaggerTemplate:  docTemplate,
+        LeftDelim:        "{{",
+        RightDelim:       "}}",
+}
+
+func init() <span class="cov0" title="0">{
+        swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package main
+
+import (
+        "context"
+        "encoding/csv"
+        "fmt"
+        "github.com/ACHTIX/assessment-tax/database"
+        _ "github.com/ACHTIX/assessment-tax/docs"
+        "github.com/ACHTIX/assessment-tax/model"
+        "github.com/ACHTIX/assessment-tax/util"
+        "github.com/go-playground/validator"
+        "github.com/labstack/echo/v4"
+        echoswagger "github.com/swaggo/echo-swagger"
+        "io"
+        "log"
+        "math"
+        "net/http"
+        "os"
+        "os/signal"
+        "strconv"
+        "syscall"
+        "time"
+)
+
+func handleTaxCalculation(c echo.Context) error <span class="cov0" title="0">{
+        var taxInput model.TaxInput
+
+        // Bind the incoming JSON to the struct
+        if err := c.Bind(&amp;taxInput); err != nil </span><span class="cov0" title="0">{
+                return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
+        }</span>
+        <span class="cov0" title="0">if err := c.Validate(taxInput); err != nil </span><span class="cov0" title="0">{
+                log.Println(err)
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        // Ensure there is at least one allowance to process
+        <span class="cov0" title="0">if len(taxInput.Allowances) &lt;= 0 </span><span class="cov0" title="0">{
+                return c.JSON(http.StatusBadRequest, map[string]string{"error": "No allowances provided"})
+        }</span>
+
+        <span class="cov0" title="0">taxResult, taxLevel, _ := util.TaxCalculation(taxInput)
+
+        log.Println("taxResult", taxResult, "taxLevel", taxLevel)
+
+        taxData := model.TaxData{}
+
+        if taxResult &gt;= 0 </span><span class="cov0" title="0">{
+                taxData = model.TaxData{Tax: taxResult}
+        }</span> else<span class="cov0" title="0"> {
+                taxData = model.TaxData{TaxRefund: math.Abs(taxResult)}
+        }</span>
+
+        <span class="cov0" title="0">taxData.TaxLevel = []model.TaxLevel{
+                {Level: "0-150,000", Tax: 0},
+                {Level: "150,001-500,000", Tax: 0},
+                {Level: "500,001-1,000,000", Tax: 0},
+                {Level: "1,000,001-2,000,000", Tax: 0},
+                {Level: "2,000,001 ขึ้นไป", Tax: 0},
+        }
+
+        for i := range taxData.TaxLevel </span><span class="cov0" title="0">{
+                if taxData.TaxLevel[i].Level == taxLevel.Level </span><span class="cov0" title="0">{
+                        taxData.TaxLevel[i].Tax = taxLevel.Tax
+                        break</span>
+                } else<span class="cov0" title="0"> if taxData.TaxLevel[i].Level == "0-150,000" </span><span class="cov0" title="0">{
+                        taxData.TaxLevel[i].Tax = 0
+                }</span> else<span class="cov0" title="0"> if taxData.TaxLevel[i].Level == "150,001-500,000" </span><span class="cov0" title="0">{
+                        taxData.TaxLevel[i].Tax = 35000.0
+                }</span> else<span class="cov0" title="0"> if taxData.TaxLevel[i].Level == "500,001-1,000,000" </span><span class="cov0" title="0">{
+                        taxData.TaxLevel[i].Tax = 110000.0
+                }</span> else<span class="cov0" title="0"> if taxData.TaxLevel[i].Level == "1,000,001-2,000,000" </span><span class="cov0" title="0">{
+                        taxData.TaxLevel[i].Tax = 310000.0
+                }</span> else<span class="cov0" title="0"> if taxData.TaxLevel[i].Level == "2,000,001 ขึ้นไป" </span><span class="cov0" title="0">{
+                        taxData.TaxLevel[i].Tax = taxResult
+                }</span>
+        }
+
+        <span class="cov0" title="0">log.Println("taxData", taxData)
+
+        // Return the tax JSON
+        return c.JSON(http.StatusOK, taxData)</span>
+}
+
+func handleAdminDeductionPersonal(c echo.Context) error <span class="cov0" title="0">{
+        var input model.AdminRequestStruct
+
+        // Fetch from the database
+        allowance, err := database.GetAllowance()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return c.JSON(http.StatusInternalServerError, "Error fetching users")
+        }</span>
+
+        // Check if the allowance is nil
+        <span class="cov0" title="0">if allowance == nil </span><span class="cov0" title="0">{
+                return c.JSON(http.StatusInternalServerError, "No allowance found in the database")
+        }</span>
+
+        // Bind the incoming JSON to the struct
+        <span class="cov0" title="0">if err := c.Bind(&amp;input); err != nil </span><span class="cov0" title="0">{
+                return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
+        }</span>
+        <span class="cov0" title="0">if err := c.Validate(input); err != nil </span><span class="cov0" title="0">{
+                log.Println(err)
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+        // Calculate the personal deduction based on the fetched allowance
+        <span class="cov0" title="0">result := util.AllowancePersonalAdmin(input.Amount)
+
+        err = database.SetPersonalAllowanceDB(result)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        <span class="cov0" title="0">log.Println("result", result)
+
+        // Return the tax JSON
+        return c.JSON(http.StatusOK, map[string]float64{"personalDeduction": result})</span>
+}
+
+func handleUpload(c echo.Context) error <span class="cov0" title="0">{
+        file, err := c.FormFile("taxFile")
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusBadRequest, "Failed to get the file")
+        }</span>
+
+        <span class="cov0" title="0">src, err := file.Open()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer src.Close()
+
+        reader := csv.NewReader(src)
+        var taxes []model.TaxResponseCSVDataStruct
+
+        if _, err = reader.Read(); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">var loopNumber = 0
+
+        for </span><span class="cov0" title="0">{
+                record, err := reader.Read()
+                if err == io.EOF </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, "Failed to read the csv file")
+                }</span>
+
+                <span class="cov0" title="0">totalIncome, err := strconv.ParseFloat(record[0], 64)
+                wht, err := strconv.ParseFloat(record[1], 64)
+                donation, err := strconv.ParseFloat(record[2], 64)
+
+                log.Println("totalIncome", totalIncome, "wht", wht, "donation", donation)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "Invalid totalIncome value")
+                }</span>
+
+                <span class="cov0" title="0">data := model.TaxInput{
+                        TotalIncome: totalIncome,
+                        Wht:         wht,
+                        Allowances: []model.Allowance{
+                                {
+                                        AllowanceType: "donation",
+                                        Amount:        donation,
+                                },
+                        },
+                }
+
+                log.Println("data", data)
+
+                tax, _, _ := util.TaxCalculation(data)
+
+                log.Println("tax", tax)
+
+                if tax &gt;= 0 </span><span class="cov0" title="0">{
+                        taxes = append(
+                                taxes,
+                                model.TaxResponseCSVDataStruct{
+                                        TotalIncome: totalIncome,
+                                        Tax:         tax,
+                                },
+                        )
+                }</span> else<span class="cov0" title="0"> {
+                        taxes = append(
+                                taxes,
+                                model.TaxResponseCSVDataStruct{
+                                        TotalIncome: totalIncome,
+                                        TaxRefund:   math.Abs(tax),
+                                },
+                        )
+                }</span>
+
+                <span class="cov0" title="0">loopNumber += 1</span>
+        }
+
+        <span class="cov0" title="0">log.Println("taxes", taxes)
+
+        return c.JSON(http.StatusOK, model.TaxResponseCSVStruct{Taxes: taxes})</span>
+}
+
+func handleAdminDeductionKReceipt(c echo.Context) error <span class="cov0" title="0">{
+
+        var input model.AdminRequestStruct
+
+        // Fetch from the database
+        allowance, err := database.GetAllowance()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return c.JSON(http.StatusInternalServerError, "Error fetching users")
+        }</span>
+
+        // Check if the allowance is nil
+        <span class="cov0" title="0">if allowance == nil </span><span class="cov0" title="0">{
+                return c.JSON(http.StatusInternalServerError, "No allowance found in the database")
+        }</span>
+
+        // Bind the incoming JSON to the struct
+        <span class="cov0" title="0">if err := c.Bind(&amp;input); err != nil </span><span class="cov0" title="0">{
+                return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid input data"})
+        }</span>
+        <span class="cov0" title="0">if err := c.Validate(input); err != nil </span><span class="cov0" title="0">{
+                log.Println(err)
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        // Calculate the personal deduction based on the fetched allowance
+        <span class="cov0" title="0">result := util.AllowanceKReceiptAdmin(input.Amount)
+
+        log.Println("result", result)
+
+        err = database.SetKReceiptAllowanceDB(result)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        // Return the tax JSON
+        <span class="cov0" title="0">return c.JSON(http.StatusOK, map[string]float64{"kReceipt": result})</span>
+}
+
+func main() <span class="cov0" title="0">{
+        e := echo.New()
+
+        // Use environment variables for database connection
+        DATABASE_URL := os.Getenv("DATABASE_URL")
+
+        if DATABASE_URL == "" </span><span class="cov0" title="0">{
+                DATABASE_URL = "host=localhost port=5432 user=postgres password=postgres dbname=ktaxes sslmode=disable" // Default port if not specified
+                log.Println("DATABASE_URL", DATABASE_URL)
+        }</span>
+        <span class="cov0" title="0">PORT := os.Getenv("PORT")
+        if PORT == "" </span><span class="cov0" title="0">{
+                PORT = "8080" // Default port if not specified
+                log.Printf("Defaulting to port %s", PORT)
+        }</span>
+        <span class="cov0" title="0">ADMIN_USERNAME := os.Getenv("ADMIN_USERNAME")
+        if ADMIN_USERNAME == "" </span><span class="cov0" title="0">{
+                ADMIN_USERNAME = "adminTax" // Default port if not specified
+                log.Printf("Defaulting to admin user %s", ADMIN_USERNAME)
+        }</span>
+        <span class="cov0" title="0">ADMIN_PASSWORD := os.Getenv("ADMIN_PASSWORD")
+        if ADMIN_PASSWORD == "" </span><span class="cov0" title="0">{
+                ADMIN_PASSWORD = "admin!" // Default port if not specified
+                log.Printf("Defaulting to admin password %s", ADMIN_PASSWORD)
+        }</span>
+
+        <span class="cov0" title="0">database.InitDB(DATABASE_URL)
+
+        e.POST("/tax/calculations", handleTaxCalculation)
+
+        e.POST("/admin/deductions/personal", handleAdminDeductionPersonal)
+
+        e.POST("/tax/calculations/upload-csv", handleUpload)
+
+        e.POST("/admin/deductions/k-receipt", handleAdminDeductionKReceipt)
+
+        e.GET("/swagger/*", echoswagger.WrapHandler)
+
+        e.Validator = &amp;util.CustomValidator{Validator: validator.New()}
+
+        //// Start the Echo web server on port 8080
+        go func() </span><span class="cov0" title="0">{
+                if err := e.Start(":" + PORT); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov0" title="0">{
+                        e.Logger.Fatal("shutting down the server: ", err)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">quit := make(chan os.Signal, 1)
+        signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+        &lt;-quit
+        preShutdownTasks()
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+        if err := e.Shutdown(ctx); err != nil </span><span class="cov0" title="0">{
+                e.Logger.Fatal("error shutting down the server: ", err)
+        }</span>
+        <span class="cov0" title="0">fmt.Println("Server has been shut down.")</span>
+}
+
+func preShutdownTasks() <span class="cov0" title="0">{
+        fmt.Println("Running pre-shutdown tasks...")
+        database.CloseDB()
+        time.Sleep(5 * time.Second)
+        fmt.Println("Pre-shutdown tasks complete.")
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package util
+
+import (
+        "github.com/ACHTIX/assessment-tax/model"
+        "log"
+)
+
+// แยกประเภทค่าลดหย่อน
+func CheckAllowanceType(input []model.Allowance) float64 <span class="cov8" title="1">{
+        amount := 0.0
+        for i := range input </span><span class="cov8" title="1">{
+                allowance := input[i].Amount
+                if input[i].AllowanceType == "donation" </span><span class="cov8" title="1">{
+                        amount += DonationAllowance(allowance)
+                }</span> else<span class="cov8" title="1"> if input[i].AllowanceType == "k-receipt" </span><span class="cov8" title="1">{
+                        amount += KReceiptAllowance(allowance)
+                }</span>
+        }
+
+        <span class="cov8" title="1">log.Println("CheckAllowanceType amount", amount)
+
+        return amount</span>
+}
+
+// ค่าลดหย่อนภาษีจากการบริจาค ไม่เกิน 100,000
+func DonationAllowance(amount float64) float64 <span class="cov8" title="1">{
+        if amount &gt;= 100001 </span><span class="cov8" title="1">{
+                return 100000
+        }</span> else<span class="cov8" title="1"> if amount &lt;= 100000 &amp;&amp; amount != 0 </span><span class="cov8" title="1">{
+                return amount
+        }</span> else<span class="cov8" title="1"> {
+                log.Println("DonationAllowance amount", amount)
+                return 0
+        }</span>
+}
+
+// ค่าลด k-receipt ต้องมีค่ามากกว่า 0 บาท
+// ค่าลดหย่อนภาษีจาก k-receipt สูงสุดไม่เกิน 50,000
+func KReceiptAllowance(amount float64) float64 <span class="cov8" title="1">{
+        if amount &gt;= 50001 </span><span class="cov8" title="1">{
+                return 50000
+        }</span> else<span class="cov8" title="1"> if amount &lt;= 50000 &amp;&amp; amount != 0 </span><span class="cov8" title="1">{
+                return amount
+        }</span>
+
+        <span class="cov8" title="1">log.Println("KReceiptAllowance amount", amount)
+
+        return 0</span>
+}
+
+// ค่าลดหย่อนส่วนตัวต้องมีค่ามากกว่า 10,000 บาท
+// แอดมินสามารถกำหนดค่าลดหย่อนส่วนตัวได้โดยไม่เกิน 100,000
+func AllowancePersonalAdmin(amount float64) float64 <span class="cov8" title="1">{
+        if amount &gt;= 100001 </span><span class="cov8" title="1">{
+                return 100000
+        }</span> else<span class="cov8" title="1"> if amount &lt;= 10000 </span><span class="cov8" title="1">{
+                return 10000
+        }</span> else<span class="cov8" title="1"> {
+                log.Println("AllowancePersonalAdmin amount", amount)
+                return amount
+        }</span>
+}
+
+// ค่าลดหย่อนภาษีจาก k-receipt แอดมินกำหมดได้ สูงสุดไม่เกิน 100,000
+func AllowanceKReceiptAdmin(amount float64) float64 <span class="cov8" title="1">{
+        if amount &gt;= 100001 </span><span class="cov8" title="1">{
+                return 100000
+        }</span> else<span class="cov8" title="1"> if amount &lt; 0 </span><span class="cov8" title="1">{
+                return 0
+        }</span> else<span class="cov8" title="1"> {
+                log.Println("AllowanceKReceiptAdmin is", amount)
+                return amount
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package util
+
+import (
+        "errors"
+        "github.com/ACHTIX/assessment-tax/model"
+        "log"
+)
+
+// รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
+func IncomeCalculation(input model.TaxInput) float64 <span class="cov8" title="1">{
+        allowanceTotal := 60000 + CheckAllowanceType(input.Allowances) //ยอดรวมลดหย่อนภาษี
+        netIncome := input.TotalIncome - allowanceTotal                //เงินทั้งหมดหักค่าลดหย่อนแล้ว
+
+        log.Println("netIncome", netIncome)
+
+        return netIncome
+}</span>
+
+// คำนวนภาษีที่ต้องจ่าย (หักwhtแล้ว)
+func TaxCalculation(input model.TaxInput) (float64, model.TaxLevel, error) <span class="cov8" title="1">{
+        netIncome := IncomeCalculation(input)               //จาก IncomeCalculation(เงินที่หักค่าลดหย่อนแล้ว)
+        deduction, taxlevel := DeductionTaxLevel(netIncome) //จาก DeductionTaxLevel(ภาษีที่ต้องจ่าย)
+        subWHT := deduction - input.Wht
+
+        if netIncome &lt; 0 </span><span class="cov8" title="1">{
+                return 0, model.TaxLevel{}, errors.New("\"Key: 'TaxInput.TotalIncome' Error:Field validation for 'TotalIncome' failed on the 'gte' tag\"")
+        }</span>
+
+        <span class="cov8" title="1">return subWHT, taxlevel, nil</span>
+}
+
+// ระบุเปอร์เซ้นที่ต้องนำมาคำนวน
+func TaxRateLevel(netIncome float64) float64 <span class="cov8" title="1">{
+        if netIncome &lt; 0 </span><span class="cov8" title="1">{
+                return -1 // Error case for negative netIncome
+        }</span> else<span class="cov8" title="1"> if netIncome &lt;= 150000 </span><span class="cov8" title="1">{
+                return 0 // No tax for netIncome ≤ 150,000
+        }</span> else<span class="cov8" title="1"> if netIncome &lt;= 500000 </span><span class="cov8" title="1">{
+                return 0.10 // 10% tax for netIncome ≤ 500,000
+        }</span> else<span class="cov8" title="1"> if netIncome &lt;= 1000000 </span><span class="cov8" title="1">{
+                return 0.15 // 15% tax for netIncome ≤ 1,000,000
+        }</span> else<span class="cov8" title="1"> if netIncome &lt;= 2000000 </span><span class="cov8" title="1">{
+                return 0.20 // 20% tax for netIncome ≤ 2,000,000
+        }</span> else<span class="cov8" title="1"> if netIncome &gt;= 2000001 </span><span class="cov8" title="1">{
+                return 0.35 // 35% tax for netIncome &gt; 2,000,000
+        }</span>
+
+        <span class="cov0" title="0">log.Println("netIncome", netIncome)
+
+        return 0</span>
+}
+
+// คำนวนภาษีก่อนหักwht
+func DeductionTaxLevel(netIncome float64) (tax float64, level model.TaxLevel) <span class="cov8" title="1">{
+        taxRateStr := TaxRateLevel(netIncome)
+
+        if netIncome &lt; 0 &amp;&amp; netIncome != 0 </span><span class="cov8" title="1">{
+                return 0, model.TaxLevel{} // Error case for negative netIncome
+        }</span> else<span class="cov8" title="1"> if netIncome &lt;= 150000 || netIncome == 0 </span><span class="cov8" title="1">{
+                return 0, model.TaxLevel{Level: "0-150,000", Tax: 0.0} // No tax for netIncome ≤ 150,000
+        }</span> else<span class="cov8" title="1"> if netIncome &lt;= 500000 </span><span class="cov8" title="1">{
+                sub := netIncome - 150000
+                total := sub * taxRateStr
+                return total, model.TaxLevel{Level: "150,001-500,000", Tax: total}
+        }</span> else<span class="cov8" title="1"> if netIncome &lt;= 1000000 </span><span class="cov8" title="1">{
+                sub := netIncome - 500000
+                total := (sub * taxRateStr) + 35000
+                return total, model.TaxLevel{Level: "500,001-1,000,000", Tax: total}
+        }</span> else<span class="cov8" title="1"> if netIncome &lt;= 2000000 </span><span class="cov0" title="0">{
+                sub := netIncome - 1000000
+                total := (sub * taxRateStr) + 110000
+                return total, model.TaxLevel{Level: "1,000,001-2,000,000", Tax: total}
+        }</span> else<span class="cov8" title="1"> {
+                sub := netIncome - 2000000
+                total := (sub * taxRateStr) + 310000
+                return total, model.TaxLevel{Level: "2,000,001 ขึ้นไป", Tax: total}
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package util
+
+import (
+        "github.com/go-playground/validator"
+)
+
+type CustomValidator struct {
+        Validator *validator.Validate
+}
+
+// Validate implements echo's validator interface using the go-playground validator.
+func (cv *CustomValidator) Validate(i interface{}) error <span class="cov0" title="0">{
+        return cv.Validator.Struct(i)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

@@ -4,11 +4,11 @@ K-Tax เป็น Application คำนวนภาษี ที่ให้ผ
 
 ## Getting Started
 
-1. First you have to clone this repository
-2. After that, you must run `assignment-tax-postgres-1` in Docker
-3. Also, you have to run `intiDB.go` to create your own Database for use this program.
-4. And then, you can use this program from run `main.go`
-5. So, you can follow the `User stories` or use with your own story
+1. Clone this repository
+2. Create repository in your `Github` account
+3. Push starter code to your `Github` account
+4. Create new branch that according to story name
+5. Follow `Functional Requirement` and `Non-Functional Requirement`
 
 ## Functional Requirement
 
@@ -16,11 +16,11 @@ K-Tax เป็น Application คำนวนภาษี ที่ให้ผ
 - ผู้ใช้งาน แสดงภาษีที่ต้องจ่ายหรือได้รับในปีนั้น ๆ ได้
 - การคำนวนภาษีคำนวนจาก เงินหัก ณ ที่จ่าย / ค่าลดหย่อนส่วนตัว/ขั้นบันใดภาษี/เงินบริจาค
 - การคำนวนภาษีตามขั้นบันใด
-    - รายได้ 0 - 150,000 ได้รับการยกเว้น
-    - 150,001 - 500,000 อัตราภาษี 10%
-    - 500,001 - 1,000,000 อัตราภาษี 15%
-    - 1,000,001 - 2,000,000 อัตราภาษี 20%
-    - มากกว่า 2,000,000 อัตราภาษี 35%
+  - รายได้ 0 - 150,000 ได้รับการยกเว้น
+  - 150,001 - 500,000 อัตราภาษี 10%
+  - 500,001 - 1,000,000 อัตราภาษี 15%
+  - 1,000,001 - 2,000,000 อัตราภาษี 20%
+  - มากกว่า 2,000,000 อัตราภาษี 35%
 - เงินบริจาคสามารถหย่อนได้สูงสุด 100,000 บาท
 - ค่าลดหย่อนส่วนตัวมีค่าเริ่มต้นที่ 60,000 บาท
 - k-receipt โครงการช้อปลดภาษี ซึ่งสามารถลดหย่อนได้สูงสุด 50,000 บาทเป็นค่าเริ่มต้น
@@ -38,25 +38,25 @@ K-Tax เป็น Application คำนวนภาษี ที่ให้ผ
 - ใช้ `PostgreSQL`
 - API port _MUST_ get from `environment variable` name `PORT`
 - database url _MUST_ get from environment variable name `DATABASE_URL`
-    - ตัวอย่าง `DATABASE_URL=host={REPLACE_ME} port=5432 user={REPLACE_ME} password={REPLACE_ME} dbname={REPLACE_ME} sslmode=disable`
+  - ตัวอย่าง `DATABASE_URL=host={REPLACE_ME} port=5432 user={REPLACE_ME} password={REPLACE_ME} dbname={REPLACE_ME} sslmode=disable`
 - ใช้ `docker compose` สำหรับต่อ Database
 - API support `Graceful Shutdown`
-    - เช่น ถ้ามีการกด `Ctrl + C` จะ print `shutting down the server`
+  - เช่น ถ้ามีการกด `Ctrl + C` จะ print `shutting down the server`
 - มี Dockerfile สำหรับ build image และเป็น `Multi-stage build`
 - ใช้ `HTTP Method` และ `HTTP Status Code` อย่างเหมาะสม
 - ใช้ `gofmt` และ `go vet`
 - แยก Branch ของแต่ละ Story ออกจาก `main` และ Merge กลับไปยัง `main` Branch เสมอ
-    - เช่น story ที่ 1 จะใช้ branch ชื่อ `feature/story-1` หรือ `feature/store-1-create-tax-calculation`
+  - เช่น story ที่ 1 จะใช้ branch ชื่อ `feature/story-1` หรือ `feature/store-1-create-tax-calculation`
 - admin กำหนด Basic authen ด้วย username: `adminTax`, password: `admin!`
-    - username และ password ต้องเป็น environment variable
-    - และ `env` ต้องเป็นชื่อ `ADMIN_USERNAME` และ `ADMIN_PASSWORD`
+  - username และ password ต้องเป็น environment variable
+  - และ `env` ต้องเป็นชื่อ `ADMIN_USERNAME` และ `ADMIN_PASSWORD`
 - **การ run program จะใช้คำสั่ง docker compose up เพื่อเตรียม environment และ go run main.go เพื่อ start api**
-    - **หากต้องมีการใช้คำสั่งอื่น ๆ เพื่อทำให้โปรแกรมทำงานได้ จะไม่นับคะแนนหรือถูกหักคะแนน**
-    - การตรวจจะทำการ export `env` ไว้ล่วงหน้าก่อนรัน ดังนี้
-        - `export PORT=8080`
-        - `export DATABASE_URL={REPLACE_ME}`
-        - `export ADMIN_USERNAME=adminTax`
-        - `export ADMIN_PASSWORD=admin!`
+  - **หากต้องมีการใช้คำสั่งอื่น ๆ เพื่อทำให้โปรแกรมทำงานได้ จะไม่นับคะแนนหรือถูกหักคะแนน**
+  - การตรวจจะทำการ export `env` ไว้ล่วงหน้าก่อนรัน ดังนี้
+	- `export PORT=8080`
+	- `export DATABASE_URL={REPLACE_ME}`
+	- `export ADMIN_USERNAME=adminTax`
+	- `export ADMIN_PASSWORD=admin!`
 - port ของ api จะต้องเป็น 8080
 
 ## Assumption
@@ -75,7 +75,7 @@ K-Tax เป็น Application คำนวนภาษี ที่ให้ผ
 - ผู้ใช้คำนวนภาษีตาม เงินได้ และฐานภาษี
 - ผู้ใช้คำนวนภาษี โดยสามารถใช้ค่าลดหย่อนจากการบริจาคได้
 - ผู้ใช้คำนวนภาษี โดยสามารถใช้ค่า wht เพื่อคำนวนเงินที่สามารถขอคืนได้
-    - (wht: with holding tax หมายถึงเงินจำนวนนึงที่ต้องหักไว้ ณ ที่จ่ายเช่น รายรับ 1 ครั้งมี wht 5% แปลว่าได้รับเงิน 10,000 บาทจะต้องถูกหัก 500 บาท แล้วเงินส่วนนี้จะถูกส่งเข้าระบบ เสมือนได้ชำระภาษีล่วงหน้าแล้ว ถ้ารายได้ไม่ถึงเกณฑ์ที่ต้องเสียเพิ่มเติม สามารถขอคืนได้)
+  - (wht: with holding tax หมายถึงเงินจำนวนนึงที่ต้องหักไว้ ณ ที่จ่ายเช่น รายรับ 1 ครั้งมี wht 5% แปลว่าได้รับเงิน 10,000 บาทจะต้องถูกหัก 500 บาท แล้วเงินส่วนนี้จะถูกส่งเข้าระบบ เสมือนได้ชำระภาษีล่วงหน้าแล้ว ถ้ารายได้ไม่ถึงเกณฑ์ที่ต้องเสียเพิ่มเติม สามารถขอคืนได้)
 - แอดมินสามารถตั้งค่า ค่าลดหย่อนได้
 - แสดงข้อมูลเพิ่มเติมตามขั้นบันใดภาษีได้
 - ผู้ใช้สามารถคำนวนภาษีตาม CSV ที่อัพโหลดมาได้
@@ -300,7 +300,7 @@ Response body
 `POST:` tax/calculations/upload-csv
 
 form-data:
-- taxFile: taxes.csv
+  - taxFile: taxes.csv
 
 ```
 totalIncome,wht,donation
@@ -419,4 +419,3 @@ Response body
 }
 ```
 ----
-

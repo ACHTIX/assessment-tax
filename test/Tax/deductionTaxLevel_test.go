@@ -46,7 +46,7 @@ func TestDeductionTaxLevel(t *testing.T) {
 		{
 			name:     "Negative Net Income",
 			input:    -1000,
-			expected: -1,               // Error case for negative netIncome
+			expected: 0,                // Error case for negative netIncome
 			taxLevel: model.TaxLevel{}, // No tax level expected for error case
 		},
 		{

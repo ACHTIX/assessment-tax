@@ -7,7 +7,7 @@ type TaxInput struct {
 }
 
 type Allowance struct {
-	AllowanceType string  `json:"allowanceType" validate:"oneof=donation k-receipt"`
+	AllowanceType string  `json:"allowanceType" validate:"oneof=donation k-receipt Personal"`
 	Amount        float64 `json:"amount" validate:"gte=0"`
 }
 

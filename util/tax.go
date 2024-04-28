@@ -6,17 +6,30 @@ import (
 	"log"
 )
 
-// รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
+// IncomeCalculation รับเงินทั้งหมดมาเพื่อหักค่าลดหย่อนภาษี = เงินสุทธิ netIncome
 func IncomeCalculation(input model.TaxInput) float64 {
-	allowanceTotal := 60000 + CheckAllowanceType(input.Allowances) //ยอดรวมลดหย่อนภาษี
-	netIncome := input.TotalIncome - allowanceTotal                //เงินทั้งหมดหักค่าลดหย่อนแล้ว
+	var personal float64
+
+	amount := model.Allowance{Amount: CheckAllowanceType(input.Allowances)}
+	allowance := model.Allowance{AllowanceType: "Personal"}
+
+	if allowance.Amount <= 0 {
+		personal = 60000
+	} else if allowance.Amount < 10000 {
+		personal = 10000
+	} else {
+		personal = allowance.Amount
+	}
+
+	allowanceTotal := personal + amount.Amount      //ยอดรวมลดหย่อนภาษี
+	netIncome := input.TotalIncome - allowanceTotal //เงินทั้งหมดหักค่าลดหย่อนแล้ว
 
 	log.Println("netIncome", netIncome)
 
 	return netIncome
 }
 
-// คำนวนภาษีที่ต้องจ่าย (หักwhtแล้ว)
+// TaxCalculation คำนวนภาษีที่ต้องจ่าย (หักwhtแล้ว)
 func TaxCalculation(input model.TaxInput) (float64, model.TaxLevel, error) {
 	netIncome := IncomeCalculation(input)               //จาก IncomeCalculation(เงินที่หักค่าลดหย่อนแล้ว)
 	deduction, taxlevel := DeductionTaxLevel(netIncome) //จาก DeductionTaxLevel(ภาษีที่ต้องจ่าย)
